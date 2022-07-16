@@ -3,6 +3,9 @@ const asyncHandler = require('express-async-handler')
 const bcrypt = require('bcrypt')
 const User = require('../models/userModel')
 const jwt = require('jsonwebtoken')
+const MailToken = require('../models/mailtoken')
+const sendMail = require('../utils/mailer')
+const crypto = import('crypto')
 
 //password hashing
 const hashPassword = async password => {
@@ -30,13 +33,8 @@ const getUsers = asyncHandler(async (req, res) => {
 
 //register users
 const registerUser = asyncHandler(async (req, res) => {
-  const {
-    email,
-    password,
-    username,
-    role
-  } = req.body
-  const userExists = await User.findOne({email})
+  const { email, password, username, role } = req.body
+  const userExists = await User.findOne({ email })
 
   //check if all necessary credentials have been entered
   if (!req.body) {
@@ -45,7 +43,7 @@ const registerUser = asyncHandler(async (req, res) => {
   }
 
   //check if user exists
-  if(userExists){
+  if (userExists) {
     res.status(400)
     throw new Error('User already exists')
   }
@@ -57,8 +55,20 @@ const registerUser = asyncHandler(async (req, res) => {
     username,
     role
   })
-  const token = createToken(user._id, user.role)
-  res.status(201).json({ message: user, token: token })
+
+  let mailToken = await new MailToken({
+    userId: user._id,
+    token: (await crypto).randomBytes(32).toString('hex')
+  }).save()
+
+  const message = `${process.env.BASE_URL}/users/verify/${user.id}/${mailToken.token}`
+  await sendMail(user.email, 'Verify Email', message)
+
+  //const token = createToken(user._id, user.role)
+  res.status(201).json({
+    message: 'An email was sent for you to verify account',
+    user: user
+  })
 })
 
 //login users
@@ -83,9 +93,40 @@ const login = asyncHandler(async (req, res) => {
   }
 })
 
+const verifyAccount = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.params.id)
+  if (!user) {
+    console.log("No user")
+    res.status(400).json({ message: 'Invalid Link' })
+  } else {
+    const mailToken = await MailToken.findOne({
+      userId: user._id,
+      token: req.params.token
+    })
+
+    if (!mailToken) {
+      console.log(user)
+      console.log("No mail token")
+      res.status(400).json({ message: 'Invalid Link' })
+    }
+
+    user.isVerified = true
+    await user.save()
+    await MailToken.findOneAndRemove({ userId: user._id })
+    const token = createToken(user._id, user.role)
+    res
+      .status(200)
+      .json({
+        message: 'Account Successfully verified',
+        user: user,
+        token: token
+      })
+  }
+})
 
 module.exports = {
   registerUser,
   getUsers,
-  login
+  login,
+  verifyAccount,
 }

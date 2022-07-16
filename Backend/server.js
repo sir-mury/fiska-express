@@ -5,6 +5,7 @@ const ordersRouter = require('./routes/orders')
 const usersRouter = require('./routes/users')
 const profilesRouter = require('./routes/profile')
 const driverOrderRouter = require('./routes/driverOrder')
+const carrierRouter = require('./routes/carrier')
 const connectDB = require('./config/db')
 const dotenv = require('dotenv').config()
 const colors = require('colors')
@@ -35,6 +36,9 @@ app.use(`${apiRoute}/profile`,profilesRouter)
 
 //driver Order Routes
 app.use(`${apiRoute}/driverorder`,driverOrderRouter)
+
+//carrier routes
+app.use(`${apiRoute}/carrier`,carrierRouter)
 
 app.use(errorHandler)
 

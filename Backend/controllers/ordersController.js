@@ -28,6 +28,8 @@ const createOrder = asyncHandler(async (req, res) => {
     user,
     orderNumber,
     product,
+    price,
+    orderType,
     userOrder,
     billingAddress,
     deliveryAddress,
@@ -36,25 +38,21 @@ const createOrder = asyncHandler(async (req, res) => {
 
   if (!req.body.orderNumber) {
     res.status(400)
-    throw new Error('Please specify user')
+    throw new Error('Please input the necessary details')
   }
   const order = await Orders.create({
     user: req.user.id,
     orderNumber,
     product,
     userOrder,
+    orderType,
+    price,
     billingAddress,
     deliveryAddress,
     status
   })
-  const matchedDriver = await order.order2Driver()
-  while(matchedDriver === null){
-    setTimeout(async function(){
-      console.log("repeated")
-      matchedDriver = await order.order2Driver()
-    },1000)
-  }
-  await order.save()
+  //await order.order2Driver()
+  //await order.save()
   res.status(201).json({ message: order })
 })
 
@@ -90,7 +88,7 @@ const updateOrder = asyncHandler(async (req, res) => {
       (order.userOrder = req.body.userOrder),
       (order.billingAddress = req.body.billingAddress),
       (order.deliveryAddress = req.body.deliveryAddress),
-      (order.status)
+      (order.status = req.body.status)
     )
   }
   const order = await Orders.findById(req.params.id)

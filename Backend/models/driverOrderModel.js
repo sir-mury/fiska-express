@@ -11,18 +11,20 @@ const driverOrderSchema = new mongoose.Schema(
         message: props => `${props} is not allowed to perform this action`
       }
     },
-    orders: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        required: true,
-        ref: 'Orders'
-      }
-    ],
+    order: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: true,
+      ref: 'Orders'
+    },
     status: {
-        type: String,
-        required: true,
-        default: 'created',
-        enum: ['created','dispatched','in-transit','delivered','completed']
+      type: String,
+      required: true,
+      default: 'created',
+      enum: ['created', 'dispatched', 'in-transit', 'delivered', 'completed']
+    },
+    accepted: {
+      type: Boolean,
+      default: false
     }
   },
   {
@@ -32,4 +34,4 @@ const driverOrderSchema = new mongoose.Schema(
 
 const DriverOrder = mongoose.model('DriverOrder', driverOrderSchema)
 
-module.exports = {DriverOrder}
+module.exports = { DriverOrder }

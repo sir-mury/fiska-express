@@ -30,6 +30,7 @@ const createProfile = asyncHandler(async (req, res) => {
     phoneNumber,
     vehicle,
     carrier,
+    pricing,
     userType
   } = req.body
   console.log(`created: ${req.user.id}`)
@@ -59,6 +60,7 @@ const createProfile = asyncHandler(async (req, res) => {
       lastName,
       phoneNumber,
       address,
+      pricing,
       vehicle,
       carrier,
       userType: 'driver'
@@ -74,6 +76,7 @@ const updateProfile = asyncHandler(async (req, res) => {
     lastName,
     address,
     phoneNumber,
+    pricing,
     vehicle,
     carrier
   } = req.body
@@ -100,6 +103,7 @@ const updateProfile = asyncHandler(async (req, res) => {
       profile.address = address
       profile.vehicle = vehicle
       profile.carrier = carrier
+      profile.pricing = pricing
       profile = await profile.save()
     }
     res

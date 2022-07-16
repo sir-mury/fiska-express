@@ -14,7 +14,7 @@ function scopedOrders (user, orders) {
 
 // permission for who can create orders
 function canCreateOrders (user) {
-  return user.role === 'admin' || user.role === 'basic'
+  return user.role === 'admin' || user.role === 'basic' || user.role === 'driver'
 }
 
 // function levelUpdateOrders(user,order){

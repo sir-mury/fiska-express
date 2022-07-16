@@ -38,7 +38,25 @@ const profileSchema = new mongoose.Schema(
       ref: 'Vehicle'
     },
     carrier: {
-      type: String
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      validate: {
+        validator: async(value)=>{
+          try {
+            const user = await User.findById(value)
+            if(user.role !== carrier){
+              return false
+            }
+            return true
+          } catch (error) {
+            console.log(error)
+          }
+        },
+        message: props => `${props} is not a carrier`
+      }
+    },
+    pricing: {
+      type: Number
     },
     userType: {
       type: String,

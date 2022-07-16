@@ -39,6 +39,7 @@ router
 
 //retry matching an order to driver
 router.put('/retry/:id', isLoggedIn, authCreateOrder, retryMatchingOrder2Driver)
+
 //middleware to determine who can create orders
 function authCreateOrder (req, res, next) {
   if (!canCreateOrders(req.user)) {

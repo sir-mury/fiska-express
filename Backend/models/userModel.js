@@ -27,7 +27,11 @@ const userSchema = new mongoose.Schema(
     role: {
       type: String,
       default: 'basic',
-      enum: ['basic', 'driver', 'admin']
+      enum: ['basic', 'driver', 'admin','carrier']
+    },
+    isVerified: {
+      type: Boolean,
+      default: false
     }
   },
   {
@@ -44,11 +48,15 @@ userSchema.statics.login = async function (email, username, password) {
   }
 
   if (user) {
-    const auth = await bcrypt.compare(password, user.password)
+    if(user.isVerified){
+      const auth = await bcrypt.compare(password, user.password)
     if (auth) {
       return user
     } else {
       throw new Error('Password is incorrect, check password')
+    }
+    }else{
+      throw new Error('Please Verify your account first')
     }
   } else {
     throw new Error('Username or Email does not exist')

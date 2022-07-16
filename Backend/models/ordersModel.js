@@ -1,10 +1,8 @@
 const mongoose = require('mongoose')
-//const { createDriverOrder } = require('../controllers/driverOrderController')
-//const productsSchema = require('../models/productsModel')
-//const addressSchema = require('../models/addressModel')
 const User = require('../models/userModel')
 const { Profile } = require('../models/profileModel')
 const { DriverOrder } = require('./driverOrderModel')
+const {findDrivers} = require('../utils/matchDriver')
 
 const addressSchema = new mongoose.Schema({
   zipCode: String,
@@ -41,6 +39,13 @@ const ordersSchema = new mongoose.Schema(
     userOrder: String,
     billingAddress: addressSchema,
     deliveryAddress: addressSchema,
+    price: {
+      type: Number
+    },
+    orderType: {
+      type: String,
+      enum: ['driver','carrier']
+    },
     status: {
       type: String,
       required: true,
@@ -81,9 +86,29 @@ ordersSchema.methods.order2Driver = async function(){
   }
 }
 
-// ordersSchema.post('save',async function (params) {
-  
-// })
+ordersSchema.post('save',async function(){
+  console.log('this ran first')
+  if(this.orderType === 'driver'){
+    //match driver
+    let result = await findDrivers(this)
+    console.log('this ran')
+    if(result === 'failed'){
+      findDrivers(this)
+    }else if(result === 'successful'){
+      console.log('done')
+    }
+  }else{
+    //do this
+  }
+})
+
+ordersSchema.post('remove',async function () {
+  const driverOrder = await DriverOrder.findOne({order: this.id})
+  const ordersList = driverOrder.orders
+  const index = driverOrder.orders.indexOf(this.id)
+  ordersList.splice(index,1)
+  await driverOrder.save()
+})
 
 const Orders = mongoose.model('Orders', ordersSchema)
 
