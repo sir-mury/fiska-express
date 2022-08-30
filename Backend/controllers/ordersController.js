@@ -1,8 +1,10 @@
 const mongoose = require('mongoose')
 const asyncHandler = require('express-async-handler')
 const User = require('../models/userModel')
-const {Orders} = require('../models/ordersModel')
+const { Orders } = require('../models/ordersModel')
 const { scopedOrders } = require('../permissions/orders')
+const { matchDrivers } = require('../utils/matchDriver')
+const { Carrier } = require('../models/carrierModel')
 
 //get all orders
 const getOrders = asyncHandler(async (req, res) => {
@@ -30,13 +32,14 @@ const createOrder = asyncHandler(async (req, res) => {
     product,
     price,
     orderType,
-    userOrder,
+    recipient,
+    pickupAddress,
     billingAddress,
     deliveryAddress,
     status
   } = req.body
 
-  if (!req.body.orderNumber) {
+  if (!product) {
     res.status(400)
     throw new Error('Please input the necessary details')
   }
@@ -44,27 +47,48 @@ const createOrder = asyncHandler(async (req, res) => {
     user: req.user.id,
     orderNumber,
     product,
-    userOrder,
+    recipient,
     orderType,
     price,
+    pickupAddress,
     billingAddress,
     deliveryAddress,
     status
   })
-  //await order.order2Driver()
-  //await order.save()
-  res.status(201).json({ message: order })
+
+  let availableDrivers
+  let availableCarriers
+
+  if (order.orderType === 'driver') {
+    availableDrivers = await matchDrivers(order)
+    //console.log(availableDrivers)
+  } else if (order.orderType === 'carrier') {
+    availableCarriers = await Carrier.find().populate('user')
+  }
+  
+  res
+    .status(201)
+    .json({
+      message: order.id,
+      availableDrivers,
+      availableCarriers
+    })
 })
 
 //retry matching order
-const retryMatchingOrder2Driver = asyncHandler(async(req,res)=> {
+const retryMatchingOrder2Driver = asyncHandler(async (req, res) => {
   const order = await Orders.findById(`${req.params.id}`)
   await order.order2Driver()
   await order.save()
   if (order.matchedDriver !== null) {
-    res.status(200).json({message: order.matchedDriver})
+    res.status(200).json({ message: order.matchedDriver })
   } else {
-    res.status(200).json({message: "Unfortunately there are no drivers available to handle this order"})
+    res
+      .status(200)
+      .json({
+        message:
+          'Unfortunately there are no drivers available to handle this order'
+      })
   }
 })
 
@@ -74,9 +98,10 @@ const updateOrder = asyncHandler(async (req, res) => {
     user,
     orderNumber,
     product,
-    userOrder,
+    recipient,
     billingAddress,
     deliveryAddress,
+    pickupAddress,
     status
   } = req.body
 
@@ -85,10 +110,11 @@ const updateOrder = asyncHandler(async (req, res) => {
       (order.user = req.user),
       (order.orderNumber = req.body.orderNumber),
       (order.product = req.body.product),
-      (order.userOrder = req.body.userOrder),
+      (order.recipient = req.body.recipient),
       (order.billingAddress = req.body.billingAddress),
       (order.deliveryAddress = req.body.deliveryAddress),
       (order.status = req.body.status)
+      (order.pickupAddress = req.body.pickupAddress)
     )
   }
   const order = await Orders.findById(req.params.id)
@@ -96,7 +122,7 @@ const updateOrder = asyncHandler(async (req, res) => {
   await order.save()
   res.status(200).json({
     message: 'Successfully updated order',
-    order: order,
+    order: order
   })
 })
 
@@ -104,13 +130,15 @@ const updateOrder = asyncHandler(async (req, res) => {
 const deleteOrder = asyncHandler(async (req, res) => {
   const order = await Orders.findById(`${req.params.id}`)
 
-  if(!order){
+  if (!order) {
     res.status(400)
     throw new Error('Order does not exist')
   }
   await order.remove()
 
-  res.status(200).json({ message: `Successfully deleted order:${req.params.id}` })
+  res
+    .status(200)
+    .json({ message: `Successfully deleted order:${req.params.id}` })
 })
 
 module.exports = {

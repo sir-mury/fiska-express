@@ -6,6 +6,7 @@ const jwt = require('jsonwebtoken')
 const MailToken = require('../models/mailtoken')
 const sendMail = require('../utils/mailer')
 const crypto = import('crypto')
+const {Profile} = require('../models/profileModel')
 
 //password hashing
 const hashPassword = async password => {
@@ -37,7 +38,7 @@ const registerUser = asyncHandler(async (req, res) => {
   const userExists = await User.findOne({ email })
 
   //check if all necessary credentials have been entered
-  if (!req.body) {
+  if (!email && !password && !role) {
     res.status(400)
     throw new Error('Please enter your credentials')
   }
@@ -45,7 +46,7 @@ const registerUser = asyncHandler(async (req, res) => {
   //check if user exists
   if (userExists) {
     res.status(400)
-    throw new Error('User already exists')
+    throw new Error('Email has already been used, please use another email')
   }
 
   let hashedPassword = await hashPassword(password)
@@ -96,7 +97,7 @@ const login = asyncHandler(async (req, res) => {
 const verifyAccount = asyncHandler(async (req, res) => {
   const user = await User.findById(req.params.id)
   if (!user) {
-    console.log("No user")
+    console.log('No user')
     res.status(400).json({ message: 'Invalid Link' })
   } else {
     const mailToken = await MailToken.findOne({
@@ -105,22 +106,54 @@ const verifyAccount = asyncHandler(async (req, res) => {
     })
 
     if (!mailToken) {
-      console.log(user)
-      console.log("No mail token")
+      //console.log(user)
+      console.log('No mail token')
       res.status(400).json({ message: 'Invalid Link' })
     }
 
     user.isVerified = true
-    await user.save()
     await MailToken.findOneAndRemove({ userId: user._id })
-    const token = createToken(user._id, user.role)
-    res
-      .status(200)
-      .json({
-        message: 'Account Successfully verified',
-        user: user,
-        token: token
+    await user.save()
+
+    let profile
+    //check if profile exists
+    const profileExists = await Profile.findOne({user:user._id})
+    //after every user is created and verified, create a profile for the user
+    if (user.role === 'basic' && profileExists === null ) {
+      profile = await Profile.create({
+        user: user._id,
+        userType: 'customer'
       })
+    } else if (user.role === 'driver' && profileExists === null) {
+      profile = await Profile.create({
+        user: user._id,
+        vehicle: null,
+        carrier: null,
+        pricing: null,
+        userType: 'driver'
+      })
+    } else if (user.role === 'carrier') {
+      await Carrier.create({
+        user: user._id,
+        companyName: '',
+        companyAddress: '',
+        companyPhoneNumber: '',
+        //companyEmail: null,
+        companyPricing: null
+      })
+    }
+    //const token = createToken(user._id, user.role)
+    res.status(200).json({
+      message: 'Account Successfully verified',
+      user: {
+        "id": user._id,
+        "email": user.email,
+        "role": user.role,
+        "isVerifed": user.isVerifed,
+      },
+      profile: profile
+      //token: token
+    })
   }
 })
 
@@ -128,5 +161,5 @@ module.exports = {
   registerUser,
   getUsers,
   login,
-  verifyAccount,
+  verifyAccount
 }

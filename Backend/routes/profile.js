@@ -1,17 +1,16 @@
 const express = require('express')
 const router = express.Router()
 const {
-  createProfile,
+  //createProfile,
   updateProfile,
   getProfile
 } = require('../controllers/profileController')
 const {isLoggedIn} = require('../middlewares/authMiddleware')
 
-//get profile , create profile and update profile
+//get profile , (this was sunset for a new functionality) create profile and update profile
 router
   .route('/')
   .get(isLoggedIn, getProfile)
-  .post(isLoggedIn, createProfile)
   .put(isLoggedIn, updateProfile)
 
 module.exports = router

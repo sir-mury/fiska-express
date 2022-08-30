@@ -1,14 +1,42 @@
 const mongoose = require('mongoose')
+const User = require('../models/userModel')
 
-const driverOrderSchema = new mongoose.Schema(
+const driverorCarrierOrderSchema = new mongoose.Schema(
   {
     driver: {
       type: mongoose.Schema.Types.ObjectId,
-      required: true,
       ref: 'User',
       validate: {
-        validator: value => value.role === 'admin' || 'driver',
-        message: props => `${props} is not allowed to perform this action`
+        validator: async(value)=>{
+          try {
+            const user = await User.findById(value)
+            if(user.role !== 'driver'){
+              return false
+            }
+            return true
+          } catch (error) {
+            console.log(error)
+          }
+        },
+        message: props => `${props.value} is not a driver`
+      }
+    },
+    carrier: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      validate: {
+        validator: async(value)=>{
+          try {
+            const user = await User.findById(value)
+            if(user.role !== "carrier"){
+              return false
+            }
+            return true
+          } catch (error) {
+            console.log(error)
+          }
+        },
+        message: props => `${props.value} is not a carrier`
       }
     },
     order: {
@@ -32,6 +60,6 @@ const driverOrderSchema = new mongoose.Schema(
   }
 )
 
-const DriverOrder = mongoose.model('DriverOrder', driverOrderSchema)
+const DriverOrder = mongoose.model('DriverOrder', driverorCarrierOrderSchema)
 
 module.exports = { DriverOrder }

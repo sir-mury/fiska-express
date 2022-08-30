@@ -2,6 +2,8 @@ const mongoose = require('mongoose')
 const bcrypt = require('bcrypt')
 const express = require('express')
 const {isEmail} = require('validator')
+const { Profile } = require('./profileModel')
+const { Carrier } = require('./carrierModel')
 
 const userSchema = new mongoose.Schema(
   {
@@ -12,7 +14,7 @@ const userSchema = new mongoose.Schema(
       required: [true, 'Please enter an email'],
       validate: {
         validator: isEmail,
-        message: props => `${props} is not a valid email`,
+        message: props => `${props.value} is not a valid email`,
       }
     },
     username: {

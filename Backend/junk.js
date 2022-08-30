@@ -32,3 +32,28 @@
 //     //console.log('matchedDriver:', matchedDriver)
 //   }
 // })
+
+
+//ordersSchema.methods.order2Driver = async function(){
+    //   try {
+    //     const drivers = await User.find({ role: 'driver' })
+    //     let orderDriver
+    //     let driverStreet
+    //     let driverAddress = new Map()
+    //     //get the address of every driver, this is rudimentary code
+    //     for (const driver of drivers) {
+    //       const driverProfile = await Profile.findOne(driver.user)
+    //       //console.log(driverProfile)
+    //       driverStreet = driverProfile.address.streetName
+    //       driverAddress.set(driverStreet, driverProfile.user)
+    //     }
+    //     if(driverAddress.has(this.deliveryAddress.streetName)){
+    //       orderDriver = driverAddress.get(this.deliveryAddress.streetName)
+    //       this.matchedDriver = orderDriver
+    //     }else{
+    //       this.matchedDriver = null
+    //     }
+    //   } catch (error) {
+    //     console.log(error.message)
+    //   }
+    // }

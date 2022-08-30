@@ -9,6 +9,7 @@
   "author": "M_M_Abdullahi",
   "license": "MIT",
   "dependencies": {
+    "axios": "^0.27.2",
     "bcrypt": "^5.0.1",
     "colors": "^1.4.0",
     "dotenv": "^16.0.0",

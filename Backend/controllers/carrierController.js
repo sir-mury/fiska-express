@@ -33,7 +33,7 @@ const createCarrier = asyncHandler(async (req, res) => {
       user: req.user.id,
       companyName,
       companyAddress,
-      companyEmail,
+      //companyEmail,
       companyPhoneNumber
     })
     res
@@ -51,15 +51,17 @@ const updateCarrier = asyncHandler(async (req, res) => {
     companyName,
     companyAddress,
     companyPhoneNumber,
-    companyEmail
+    //companyEmail,
+    companyPricing,
   } = req.body
 
   const carrier = await Carrier.find({ user: req.params.id })
   if (carrier !== null && carrier.user === req.user.id) {
     carrier.companyName = companyName
     carrier.companyAddress = companyAddress
-    carrier.companyEmail = companyEmail
+    //carrier.companyEmail = companyEmail
     carrier.companyPhoneNumber = companyPhoneNumber
+    carrier.companyPricing = companyPricing
     await carrier.save()
   }
   res

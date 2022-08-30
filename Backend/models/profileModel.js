@@ -8,7 +8,9 @@ const addressSchema = new mongoose.Schema({
   localGovernment: String,
   city: String,
   state: String,
-  country: String
+  country: String,
+  latitude: Number,
+  longitude: Number,
 })
 
 const profileSchema = new mongoose.Schema(
@@ -20,36 +22,42 @@ const profileSchema = new mongoose.Schema(
     },
     firstName: {
       type: String,
-      required: true
+      default: null,
+      //required: true
     },
     lastName: {
       type: String,
-      required: true
+      default: null,
+      //required: true
     },
     phoneNumber: {
       type: String,
-      required: true
+      default: null,
+      //required: true
     },
     address: {
-      type: addressSchema
+      type: addressSchema,
+      default: null,
     },
     vehicle: {
       type: mongoose.Schema.Types.ObjectId,
+      //default: null,
       ref: 'Vehicle'
     },
     carrier: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
+      //default: null,
       validate: {
         validator: async(value)=>{
           try {
-            const user = await User.findById(value)
-            if(user.role !== carrier){
+            const user = await this.carrier.ref.findById(value)
+            if(user.role !== "carrier"){
               return false
             }
             return true
           } catch (error) {
-            console.log(error)
+            console.log('error:',error)
           }
         },
         message: props => `${props} is not a carrier`

@@ -36,11 +36,14 @@ const carrierSchema = new mongoose.Schema({
     companyEmail: {
         type: String,
         required: true,
-        default: User.findById(this.user).select('email'),
+        default: async() => await this.user.ref.findById(this.user).select('email'),
         validate: {
             validator: isEmail,
             message: props => `${props} is not a valid Email`
         }
+    },
+    companyPricing: {
+        type: String,
     },
     isVerified: {
         type: Boolean,
